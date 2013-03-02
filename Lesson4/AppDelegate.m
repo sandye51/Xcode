@@ -7,7 +7,6 @@
 //
 
 #import "AppDelegate.h"
-#import <Foundation/NSURLConnection.h>
 
 @implementation AppDelegate
 
