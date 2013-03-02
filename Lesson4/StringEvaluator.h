@@ -9,16 +9,10 @@
 #import <Foundation/Foundation.h>
 
 @interface StringEvaluator : NSObject
-{
-@private
-    NSString *_errorMessage;
-    NSString *_stringValue;
-    NSString *_polskaString;
-}
 
-@property (retain, readwrite) NSString *stringValue;
-@property (assign, readonly) NSString *errorMessage;
-@property (assign, readonly) NSString *polskaString;
+@property (nonatomic, retain) NSString *stringValue;
+@property (nonatomic, readonly, retain) NSString *errorMessage;
+@property (nonatomic, readonly, retain) NSString *polskaString;
 
 - (id)init;
 - (id)initWithStringValue:(NSString *)stringValue;

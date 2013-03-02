@@ -12,12 +12,13 @@
 @interface AppController : NSObject
 {
 @private
-    IBOutlet NSTextField *_stringTextField;
-    IBOutlet NSTextField *_polskaString;
-    IBOutlet NSTextField *_errorString;
-    IBOutlet NSTextField *_resultTextField;
     StringEvaluator* _parser;
 }
+
+@property (assign, nonatomic) IBOutlet NSTextField *resultTextField;
+@property (assign, nonatomic) IBOutlet NSTextField *stringTextField;
+@property (assign, nonatomic) IBOutlet NSTextField *errorTextField;
+@property (assign, nonatomic) IBOutlet NSTextField *polskaTextField;
 
 - (id)init;
 

@@ -21,14 +21,27 @@
 - (IBAction)textChanged:(id)sender
 {
     [_parser setStringValue:[_stringTextField stringValue]];
-    NSNumber* result = [_parser calculateValue];
     
-    if (result != nil)
-    {
-        [_polskaString setStringValue:[_parser polskaString]];
-        [_resultTextField setStringValue:[NSString stringWithFormat:@"%lf", [result doubleValue]]];
-    }
-    [_errorString setStringValue:[_parser errorMessage]];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+        ^(void)
+        {
+            NSNumber *result = [_parser calculateValue];
+            dispatch_async(dispatch_get_main_queue(),
+                ^(void)
+                {
+                    if (result != nil)
+                    {
+                        [_polskaTextField setStringValue:[_parser polskaString]];
+                        [_resultTextField setDoubleValue:[result doubleValue]];
+                    }
+                    else
+                    {
+                        [_polskaTextField setStringValue:@""];
+                        [_resultTextField setStringValue:@""];
+                    }
+                    [_errorTextField setStringValue:[_parser errorMessage]];
+                });
+        });
 }
 
 - (void)dealloc
