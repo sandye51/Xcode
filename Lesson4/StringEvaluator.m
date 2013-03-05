@@ -105,109 +105,113 @@
 
 - (NSString *)createResultString
 {
-    NSMutableString *resultString = [NSMutableString stringWithString:@""] ;
-    NSMutableArray *stack = [[NSMutableArray new] autorelease];
-    NSUInteger operandCounter = 0, operationCounter = 0;
-    unichar peek;
+    NSMutableString *resultString = [NSMutableString stringWithString:@""];
     
-    while ([_workingCopy length] > 0)
+    @autoreleasepool
     {
-        // try to extract operand
-        NSNumber* operand = [self extractOperand];
-        double value = [operand doubleValue];
-        if (value < 0)
-        {
-            if (value == -2.0)
-                return nil;
-        }
-        else
-        {
-            [resultString appendFormat:@" %lf", value];
-            ++operandCounter;
-            continue;
-        }
+        NSMutableArray *stack = [[NSMutableArray new] autorelease];
+        NSUInteger operandCounter = 0, operationCounter = 0;
+        unichar peek;
         
-        // try to extract operation
-        unichar symbol = [_workingCopy characterAtIndex:0];
-        [_workingCopy deleteCharactersInRange:NSMakeRange(0, 1)];
-        unsigned char priority = [StringEvaluator operationPriority:symbol];
-        
-        // if operation
-        if (priority >= 2)
+        while ([_workingCopy length] > 0)
         {
-            ++operationCounter;
-            [[stack lastObject] getValue:&peek];
-            
-            if ([stack count] == 0 || [StringEvaluator operationPriority:peek] < priority)
+            // try to extract operand
+            NSNumber* operand = [self extractOperand];
+            double value = [operand doubleValue];
+            if (value < 0)
             {
-                [stack addObject:[NSValue value:&symbol withObjCType:@encode(unichar)]];
+                if (value == -2.0)
+                    return nil;
+            }
+            else
+            {
+                [resultString appendFormat:@" %g", value];
+                ++operandCounter;
                 continue;
             }
             
-            while ([stack count] > 0 && [StringEvaluator operationPriority:peek] >= priority)
+            // try to extract operation
+            unichar symbol = [_workingCopy characterAtIndex:0];
+            [_workingCopy deleteCharactersInRange:NSMakeRange(0, 1)];
+            unsigned char priority = [StringEvaluator operationPriority:symbol];
+            
+            // if operation
+            if (priority >= 2)
             {
-                [resultString appendFormat:@" %c", peek];
-                [stack removeLastObject];
+                ++operationCounter;
                 [[stack lastObject] getValue:&peek];
-            }
-            [stack addObject:[NSValue value:&symbol withObjCType:@encode(unichar)]];
-        }
-        // if brackets
-        else if (priority == 1)
-        {
-            if (symbol == '(')
-                [stack addObject:[NSValue value:&symbol withObjCType:@encode(unichar)]];
-            else
-            {
-                [[stack lastObject] getValue:&peek];
-                while ([stack count] > 0 && peek != '(')
+                
+                if ([stack count] == 0 || [StringEvaluator operationPriority:peek] < priority)
+                {
+                    [stack addObject:[NSValue value:&symbol withObjCType:@encode(unichar)]];
+                    continue;
+                }
+                
+                while ([stack count] > 0 && [StringEvaluator operationPriority:peek] >= priority)
                 {
                     [resultString appendFormat:@" %c", peek];
                     [stack removeLastObject];
                     [[stack lastObject] getValue:&peek];
                 }
-                
-                if ([stack count] == 0)
+                [stack addObject:[NSValue value:&symbol withObjCType:@encode(unichar)]];
+            }
+            // if brackets
+            else if (priority == 1)
+            {
+                if (symbol == '(')
+                    [stack addObject:[NSValue value:&symbol withObjCType:@encode(unichar)]];
+                else
                 {
-                    self.errorMessage = @"Не хватает открывающейся скобки";
-                    return nil;
+                    [[stack lastObject] getValue:&peek];
+                    while ([stack count] > 0 && peek != '(')
+                    {
+                        [resultString appendFormat:@" %c", peek];
+                        [stack removeLastObject];
+                        [[stack lastObject] getValue:&peek];
+                    }
+                    
+                    if ([stack count] == 0)
+                    {
+                        self.errorMessage = @"Не хватает открывающейся скобки";
+                        return nil;
+                    }
+                    
+                    if (peek != '(')
+                    {
+                        self.errorMessage = @"Ошибка при расстановке скобок";
+                        return nil;
+                    }
+                    
+                    [stack removeLastObject];
                 }
-                
-                if (peek != '(')
-                {
-                    self.errorMessage = @"Ошибка при расстановке скобок";
-                    return nil;
-                }
-                
-                [stack removeLastObject];
+            }
+            else
+            {
+                self.errorMessage = [NSString stringWithFormat:@"Неопознанный символ %c", symbol];
+                return nil;
             }
         }
-        else
+        
+        if (operationCounter + 1 != operandCounter)
         {
-            self.errorMessage = [NSString stringWithFormat:@"Неопознанный символ %c", symbol];
+            self.errorMessage = @"Несоответствие операторов";
             return nil;
         }
-    }
-    
-    if (operationCounter + 1 != operandCounter)
-    {
-        self.errorMessage = @"Несоответствие операторов";
-        return nil;
-    }
-    
-    // pop from stack to result string
-    while ([stack count] > 0)
-    {
-        [[stack lastObject] getValue:&peek];
-        if (peek == '(')
+        
+        // pop from stack to result string
+        while ([stack count] > 0)
         {
-            self.errorMessage = @"Не хватает закрывающейся скобки";
-            return nil;
+            [[stack lastObject] getValue:&peek];
+            if (peek == '(')
+            {
+                self.errorMessage = @"Не хватает закрывающейся скобки";
+                return nil;
+            }
+            [resultString appendFormat:@" %c", peek];
+            [stack removeLastObject];
         }
-        [resultString appendFormat:@" %c", peek];
-        [stack removeLastObject];
     }
-    
+
     [resultString deleteCharactersInRange:NSMakeRange(0, 1)];
     return resultString;
 }

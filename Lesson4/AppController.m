@@ -20,7 +20,7 @@
 
 - (IBAction)textChanged:(id)sender
 {
-    [_parser setStringValue:[_stringTextField stringValue]];
+    _parser.stringValue = _stringTextField.stringValue;
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
         ^(void)
@@ -28,18 +28,10 @@
             NSNumber *result = [_parser calculateValue];
             dispatch_async(dispatch_get_main_queue(),
                 ^(void)
-                {
-                    if (result != nil)
-                    {
-                        [_polskaTextField setStringValue:[_parser polskaString]];
-                        [_resultTextField setDoubleValue:[result doubleValue]];
-                    }
-                    else
-                    {
-                        [_polskaTextField setStringValue:@""];
-                        [_resultTextField setStringValue:@""];
-                    }
-                    [_errorTextField setStringValue:[_parser errorMessage]];
+               {
+                    _polskaTextField.stringValue = result == nil ? @"" : _parser.polskaString;
+                    _resultTextField.stringValue = result == nil ? @"" : [NSString stringWithFormat:@"%g", [result doubleValue]];
+                    _errorTextField.stringValue = _parser.errorMessage;
                 });
         });
 }

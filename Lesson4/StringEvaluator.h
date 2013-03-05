@@ -10,9 +10,9 @@
 
 @interface StringEvaluator : NSObject
 
-@property (nonatomic, retain) NSString *stringValue;
-@property (nonatomic, readonly, retain) NSString *errorMessage;
-@property (nonatomic, readonly, retain) NSString *polskaString;
+@property (retain, nonatomic) NSString *stringValue;
+@property (retain, nonatomic, readonly) NSString *errorMessage;
+@property (retain, nonatomic, readonly) NSString *polskaString;
 
 - (id)init;
 - (id)initWithStringValue:(NSString *)stringValue;

@@ -10,11 +10,8 @@
 #import "StringEvaluator.h"
 
 @interface AppController : NSObject
-{
-@private
-    StringEvaluator* _parser;
-}
 
+@property (retain, nonatomic, readonly) StringEvaluator *parser;
 @property (assign, nonatomic) IBOutlet NSTextField *resultTextField;
 @property (assign, nonatomic) IBOutlet NSTextField *stringTextField;
 @property (assign, nonatomic) IBOutlet NSTextField *errorTextField;
